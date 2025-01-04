@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Free Data Analysis</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --bg-primary: #f8f9fa;
+            --bg-secondary: #ffffff;
+            --text-primary: #212529;
+            --text-secondary: #6c757d;
+            --border-color: #dee2e6;
+            --upload-bg: #f8f9fa;
+            --upload-hover: #f1f3f5;
+            --upload-dragover: #e7f1ff;
+            --result-bg: #f8f9fa;
+            --accent-color: #0d6efd;
+            --accent-hover: #0b5ed7;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #1e1e2e;
+            --bg-secondary: #282838;
+            --text-primary: #e2e2e2;
+            --text-secondary: #a0a0a0;
+            --border-color: #3d3d4d;
+            --upload-bg: #2a2a3a;
+            --upload-hover: #32323f;
+            --upload-dragover: #3a3a48;
+            --result-bg: #2a2a3a;
+            --accent-color: #3b82f6;
+            --accent-hover: #2563eb;
+            --error-bg: #442626;
+            --error-border: #dc2626;
+            --error-text: #fecaca;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+
+        .main-container {
+            background-color: var(--bg-secondary);
+            margin: 2rem auto;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px var(--shadow-color);
+            max-width: 900px;
+            transition: all 0.3s ease;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .header h1 {
+            color: var(--accent-color);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: var(--accent-color);
+            font-size: 1.2rem;
+            margin: 0;
+            font-weight: 500;
+        }
+
+        .upload-section {
+            background-color: var(--upload-bg);
+            padding: 2rem;
+            border-radius: 10px;
+            border: 2px dashed var(--border-color);
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            margin-bottom: 1rem;
+        }
+
+        .upload-section:hover {
+            background-color: var(--upload-hover);
+            border-color: var(--accent-color);
+        }
+
+        .upload-section.dragover {
+            background-color: var(--upload-dragover);
+            border-color: var(--accent-color);
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+
+        .file-input-wrapper input[type="file"] {
+            opacity: 0;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .file-input-button {
+            padding: 1rem 2rem;
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .file-input-button:hover {
+            background-color: var(--upload-hover);
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+        }
+
+        .file-input-button i {
+            font-size: 1.2rem;
+        }
+
+        .selected-file {
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .file-info {
+            margin-top: 0.5rem;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .analyze-btn {
+            background-color: var(--accent-color);
+            color: white;
+            padding: 1.2rem 4rem;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            margin-top: 2rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .analyze-btn i {
+            font-size: 1.3rem;
+        }
+
+        .analyze-btn:hover {
+            background-color: var(--accent-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .analyze-btn:disabled {
+            background-color: var(--text-secondary);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .loading-spinner {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            margin-top: 2rem;
+            padding: 1rem;
+            background-color: var(--upload-bg);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .loading-spinner .spinner-border {
+            color: var(--accent-color) !important;
+        }
+
+        .result-box {
+            background-color: var(--result-bg);
+            padding: 2rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            margin-top: 2rem;
+            font-size: 1rem;
+            line-height: 1.7;
+            color: var(--text-primary);
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--accent-color);
+            margin: 1.5rem 0 1rem;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .section-title i {
+            margin-right: 0.5rem;
+            transition: transform 0.3s ease;
+        }
+
+        .section-title.collapsed i {
+            transform: rotate(-90deg);
+        }
+
+        .section-content {
+            background-color: var(--bg-secondary);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .section-content.collapsed {
+            display: none;
+        }
+
+        .key-stat {
+            display: inline-block;
+            background-color: var(--upload-bg);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            margin: 0.25rem;
+            font-size: 0.9rem;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-value {
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        .recommendation {
+            background-color: var(--upload-bg);
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 0.5rem 0;
+            border-left: 4px solid var(--accent-color);
+        }
+
+        pre {
+            background-color: var(--upload-bg);
+            padding: 1rem;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 0.9rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+
+        th, td {
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            text-align: left;
+        }
+
+        th {
+            background-color: var(--upload-bg);
+            font-weight: 600;
+        }
+
+        .visualization-suggestion {
+            background-color: var(--upload-bg);
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 0.5rem 0;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .visualization-suggestion i {
+            font-size: 1.5rem;
+            color: var(--accent-color);
+        }
+
+        .error-message {
+            color: var(--error-text);
+            background-color: var(--error-bg);
+            border-color: var(--error-border);
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 5px;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 1.5rem;
+            right: 1.5rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            font-size: 1.25rem;
+            cursor: pointer;
+            padding: 0.75rem;
+            border-radius: 12px;
+            width: 46px;
+            height: 46px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px var(--shadow-color);
+        }
+
+        .theme-toggle:hover {
+            background-color: var(--upload-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" id="themeToggle">
+        <i class="bi bi-sun-fill"></i>
+    </button>
+
+    <div class="main-container">
+        <div class="header">
+            <h1><i class="bi bi-graph-up"></i> Free Data Analysis</h1>
+            <p>Upload your data file for instant AI-powered analysis</p>
+        </div>
+        
+        <form id="uploadForm" enctype="multipart/form-data">
+            <div class="upload-section" id="dropZone">
+                <div class="file-input-wrapper">
+                    <div class="file-input-button">
+                        <i class="bi bi-cloud-upload"></i> Choose File or Drag & Drop
+                    </div>
+                    <input type="file" class="form-control" id="file" name="file" accept=".csv,.txt" required>
+                </div>
+                <div id="selectedFile" class="selected-file">No file selected</div>
+                <div class="file-info">
+                    Supported file types: CSV (comma-separated values) and TXT files
+                    <br>
+                    Maximum file size: 16MB
+                </div>
+            </div>
+            
+            <div class="text-center">
+                <button type="submit" class="analyze-btn" id="analyzeBtn">
+                    <i class="bi bi-magic"></i> Analyze Data
+                </button>
+            </div>
+        </form>
+
+        <div id="loading" class="loading-spinner" style="display: none;">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <span class="ms-2">Analyzing your data...</span>
+        </div>
+
+        <div id="result" class="result-box" style="display: none;"></div>
+    </div>
+
+    <script>
+        // Drag and drop functionality
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('file');
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight(e) {
+            dropZone.classList.add('dragover');
+        }
+
+        function unhighlight(e) {
+            dropZone.classList.remove('dragover');
+        }
+
+        dropZone.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            fileInput.files = files;
+            
+            // Trigger the change event
+            const event = new Event('change');
+            fileInput.dispatchEvent(event);
+        }
+
+        // Update selected filename
+        document.getElementById('file').addEventListener('change', function(e) {
+            const fileName = e.target.files[0]?.name || 'No file selected';
+            document.getElementById('selectedFile').textContent = fileName;
+        });
+
+        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData();
+            const fileInput = document.getElementById('file');
+            formData.append('file', fileInput.files[0]);
+
+            document.getElementById('analyzeBtn').disabled = true;
+            document.getElementById('loading').style.display = 'flex';
+            document.getElementById('result').style.display = 'none';
+
+            try {
+                const response = await fetch('/analyze', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'Error analyzing file');
+                }
+                
+                const resultElement = document.getElementById('result');
+                // Parse the analysis text and create structured HTML
+                const analysisHtml = formatAnalysisResult(data.analysis);
+                resultElement.innerHTML = analysisHtml;
+                resultElement.style.display = 'block';
+                
+                // Add click handlers for collapsible sections
+                document.querySelectorAll('.section-title').forEach(title => {
+                    title.addEventListener('click', () => {
+                        const content = title.nextElementSibling;
+                        const isCollapsed = content.classList.contains('collapsed');
+                        
+                        content.classList.toggle('collapsed');
+                        title.classList.toggle('collapsed');
+                    });
+                });
+                
+                // Scroll to results
+                resultElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } catch (error) {
+                console.error('Error:', error);
+                const resultElement = document.getElementById('result');
+                resultElement.innerHTML = `<div class="error-message">${error.message || 'Error analyzing file. Please try again.'}</div>`;
+                resultElement.style.display = 'block';
+            } finally {
+                document.getElementById('analyzeBtn').disabled = false;
+                document.getElementById('loading').style.display = 'none';
+            }
+        });
+
+        function formatAnalysisResult(analysis) {
+            // Split the analysis into sections based on numbered headings
+            const sections = analysis.split(/(?=\d+\.)/);
+            
+            let html = '<div class="analysis-container">';
+            
+            sections.forEach(section => {
+                if (!section.trim()) return;
+                
+                const titleMatch = section.match(/^\d+\.\s+([^\n]+)/);
+                if (titleMatch) {
+                    const title = titleMatch[1];
+                    const content = section.substring(titleMatch[0].length).trim();
+                    
+                    html += `
+                        <div class="section-title">
+                            <i class="bi bi-chevron-down"></i>
+                            ${title}
+                        </div>
+                        <div class="section-content">
+                            ${formatSectionContent(title, content)}
+                        </div>
+                    `;
+                }
+            });
+            
+            html += '</div>';
+            return html;
+        }
+
+        function formatSectionContent(title, content) {
+            // Format content based on section type
+            if (title.includes('Executive Summary')) {
+                return formatParagraphs(content);
+            } else if (title.includes('Statistical Overview')) {
+                return formatStatistics(content);
+            } else if (title.includes('Key Relationships')) {
+                return formatRelationships(content);
+            } else if (title.includes('Recommended Visualizations')) {
+                return formatVisualizations(content);
+            } else if (title.includes('Action Items')) {
+                return formatActionItems(content);
+            }
+            return formatParagraphs(content);
+        }
+
+        function formatParagraphs(content) {
+            return content.split('\n').map(p => p.trim()).filter(p => p).map(p => `<p>${p}</p>`).join('');
+        }
+
+        function formatStatistics(content) {
+            const parts = content.split(/[A-Z]\./);
+            return parts.map(part => {
+                if (!part.trim()) return '';
+                const lines = part.trim().split('\n');
+                const subTitle = lines[0];
+                const stats = lines.slice(1).join('\n');
+                
+                return `
+                    <div class="stat-section">
+                        <h4>${subTitle}</h4>
+                        <div class="stat-content">
+                            ${formatStatItems(stats)}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function formatStatItems(stats) {
+            return stats.split('-').map(stat => {
+                if (!stat.trim()) return '';
+                const [label, value] = stat.split(':').map(s => s.trim());
+                if (!value) return `<div class="stat-label">${label}</div>`;
+                return `
+                    <div class="key-stat">
+                        <div class="stat-label">${label}</div>
+                        <div class="stat-value">${value}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function formatRelationships(content) {
+            return content.split('-').map(item => {
+                if (!item.trim()) return '';
+                return `<div class="relationship-item">${item.trim()}</div>`;
+            }).join('');
+        }
+
+        function formatVisualizations(content) {
+            return content.split(/\d+\./).map(viz => {
+                if (!viz.trim()) return '';
+                return `
+                    <div class="visualization-suggestion">
+                        <i class="bi bi-graph-up"></i>
+                        <div>${viz.trim()}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function formatActionItems(content) {
+            return content.split('-').map(item => {
+                if (!item.trim()) return '';
+                return `<div class="recommendation">${item.trim()}</div>`;
+            }).join('');
+        }
+
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = themeToggle.querySelector('i');
+        
+        // Check for saved theme preference or default to 'light'
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        updateThemeIcon(savedTheme);
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon(newTheme);
+        });
+
+        function updateThemeIcon(theme) {
+            themeIcon.className = theme === 'dark' ? 'bi bi-moon-fill' : 'bi bi-sun-fill';
+        }
+    </script>
+</body>
+</html> 
