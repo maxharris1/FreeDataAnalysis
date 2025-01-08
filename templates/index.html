@@ -6,6 +6,7 @@
     <title>Free Data Analysis</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <style>
         :root {
             --bg-primary: #f8f9fa;
@@ -301,6 +302,104 @@
             transform: translateY(-2px);
             box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
         }
+
+        .llm-toggle-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            margin: 2rem 0;
+            padding: 1rem;
+            background-color: var(--upload-bg);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .llm-toggle {
+            position: relative;
+            display: inline-block;
+            width: 200px;
+            height: 34px;
+        }
+
+        .llm-toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .llm-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--bg-secondary);
+            transition: .4s;
+            border-radius: 34px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 10px;
+        }
+
+        .llm-option {
+            z-index: 1;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            transition: color 0.3s ease;
+            padding: 0 8px;
+        }
+
+        .llm-slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 95px;
+            left: 4px;
+            bottom: 3px;
+            background-color: var(--accent-color);
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .llm-toggle input:checked + .llm-slider:before {
+            transform: translateX(97px);
+        }
+
+        .llm-toggle input:checked ~ .llm-slider .llm-option.local,
+        .llm-toggle input:not(:checked) ~ .llm-slider .llm-option.cloud {
+            color: white;
+            font-weight: 500;
+        }
+
+        .llm-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .llm-status i {
+            font-size: 0.8rem;
+            color: #22c55e;
+        }
+
+        .llm-status.offline i {
+            color: #ef4444;
+        }
+
+        .llm-info {
+            color: var(--text-secondary);
+            cursor: help;
+        }
+
+        .llm-info i:hover {
+            color: var(--accent-color);
+        }
     </style>
 </head>
 <body>
@@ -330,6 +429,23 @@
         </div>
 
         <form id="uploadForm">
+            <div class="llm-toggle-container">
+                <div class="llm-status" id="localLLMStatus">
+                    <i class="bi bi-circle-fill"></i>
+                    <span>Local LLM Status</span>
+                </div>
+                <label class="llm-toggle">
+                    <input type="checkbox" id="llmToggle">
+                    <span class="llm-slider">
+                        <span class="llm-option cloud">OpenAI</span>
+                        <span class="llm-option local">Local LLM</span>
+                    </span>
+                </label>
+                <div class="llm-info">
+                    <i class="bi bi-info-circle" data-bs-toggle="tooltip" data-bs-placement="top" 
+                       title="OpenAI: Sends data to cloud. Local LLM: Keeps data on your machine."></i>
+                </div>
+            </div>
             <button type="submit" class="analyze-btn" id="analyzeBtn">
                 <i class="bi bi-magic"></i>
                 Analyze
@@ -347,136 +463,190 @@
     </div>
 
     <script>
-        // Get DOM elements
-        const dropZone = document.getElementById('dropZone');
-        const fileInput = document.getElementById('fileInput');
-        const selectedFile = document.getElementById('selectedFile');
-        const uploadForm = document.getElementById('uploadForm');
-        const analyzeBtn = document.getElementById('analyzeBtn');
-        const loading = document.getElementById('loading');
-        const result = document.getElementById('result');
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Bootstrap tooltips
+            const tooltips = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            tooltips.forEach(el => new bootstrap.Tooltip(el));
 
-        // Drag and drop functionality
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            dropZone.addEventListener(eventName, preventDefaults, false);
-        });
+            // Get DOM elements
+            const dropZone = document.getElementById('dropZone');
+            const fileInput = document.getElementById('fileInput');
+            const selectedFile = document.getElementById('selectedFile');
+            const uploadForm = document.getElementById('uploadForm');
+            const analyzeBtn = document.getElementById('analyzeBtn');
+            const loading = document.getElementById('loading');
+            const result = document.getElementById('result');
+            const llmToggle = document.getElementById('llmToggle');
+            const llmStatus = document.getElementById('localLLMStatus');
+            const themeToggle = document.getElementById('themeToggle');
+            const themeIcon = themeToggle.querySelector('i');
 
-        function preventDefaults(e) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
-
-        ['dragenter', 'dragover'].forEach(eventName => {
-            dropZone.addEventListener(eventName, highlight, false);
-        });
-
-        ['dragleave', 'drop'].forEach(eventName => {
-            dropZone.addEventListener(eventName, unhighlight, false);
-        });
-
-        function highlight(e) {
-            dropZone.classList.add('dragover');
-        }
-
-        function unhighlight(e) {
-            dropZone.classList.remove('dragover');
-        }
-
-        dropZone.addEventListener('drop', handleDrop, false);
-
-        function handleDrop(e) {
-            const dt = e.dataTransfer;
-            const files = dt.files;
-            fileInput.files = files;
-            updateFileName(files[0]);
-        }
-
-        // Handle file selection via button
-        dropZone.addEventListener('click', () => {
-            fileInput.click();
-        });
-
-        fileInput.addEventListener('change', (e) => {
-            updateFileName(e.target.files[0]);
-        });
-
-        function updateFileName(file) {
-            selectedFile.textContent = file ? file.name : 'No file selected';
-        }
-
-        // Form submission
-        uploadForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            if (!fileInput.files[0]) {
-                alert('Please select a file first');
-                return;
+            // Theme functionality
+            function updateThemeIcon(theme) {
+                themeIcon.className = theme === 'dark' ? 'bi bi-moon-fill' : 'bi bi-sun-fill';
             }
 
-            const formData = new FormData();
-            formData.append('file', fileInput.files[0]);
+            // Set initial theme
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            updateThemeIcon(savedTheme);
 
-            analyzeBtn.disabled = true;
-            loading.style.display = 'flex';
-            result.style.display = 'none';
+            // Theme toggle click handler
+            themeToggle.addEventListener('click', () => {
+                const currentTheme = document.documentElement.getAttribute('data-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+                updateThemeIcon(newTheme);
+            });
 
-            try {
-                const response = await fetch('/analyze', {
-                    method: 'POST',
-                    body: formData
-                });
-                const data = await response.json();
-                
-                if (!response.ok) {
-                    throw new Error(data.error || 'Error analyzing file');
+            // File handling functions
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            function highlight(e) {
+                dropZone.classList.add('dragover');
+            }
+
+            function unhighlight(e) {
+                dropZone.classList.remove('dragover');
+            }
+
+            function updateFileName(file) {
+                selectedFile.textContent = file ? file.name : 'No file selected';
+            }
+
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                fileInput.files = files;
+                updateFileName(files[0]);
+            }
+
+            // Drag and drop event listeners
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, preventDefaults, false);
+            });
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropZone.addEventListener(eventName, highlight, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, unhighlight, false);
+            });
+
+            dropZone.addEventListener('drop', handleDrop, false);
+
+            // File input click handler
+            dropZone.addEventListener('click', () => {
+                fileInput.click();
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                updateFileName(e.target.files[0]);
+            });
+
+            // LLM Status functionality
+            async function checkLocalLLMStatus() {
+                try {
+                    const response = await fetch('/check-ollama-status');
+                    const data = await response.json();
+                    
+                    if (data.is_online && data.has_model) {
+                        llmStatus.classList.remove('offline');
+                        llmStatus.querySelector('span').textContent = 'Local LLM Online';
+                        llmToggle.disabled = false;
+                        return true;
+                    } else {
+                        llmStatus.classList.add('offline');
+                        llmStatus.querySelector('span').textContent = data.message;
+                        llmToggle.disabled = true;
+                        return false;
+                    }
+                } catch (error) {
+                    llmStatus.classList.add('offline');
+                    llmStatus.querySelector('span').textContent = 'Local LLM Offline';
+                    llmToggle.disabled = true;
+                    return false;
                 }
-                
-                const formattedAnalysis = data.analysis
-                    .replace(/^#{2,3}\s+(.+)$/gm, '<h2>$1</h2>')
-                    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-                    .replace(/^\d+\.\s+([^\n]+)/gm, '<h3>$1</h3>')
-                    .replace(/^[-•]\s+(.+)/gm, '<li>$1</li>')
-                    .replace(/(?:\n|^)([A-Z][^:\n]+:)/g, '<strong>$1</strong>')
-                    .replace(/((?:<li>.*?<\/li>\n?)+)/g, '<ul>$1</ul>')
-                    .replace(/\n{2,}/g, '</p><p>')
-                    .replace(/\n/g, '<br>');
-                
-                result.innerHTML = `<p>${formattedAnalysis}</p>`;
-                result.style.display = 'block';
-                
-                // Scroll to results
-                result.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            } catch (error) {
-                console.error('Error:', error);
-                result.innerHTML = `<div class="error-message">${error.message || 'Error analyzing file. Please try again.'}</div>`;
-                result.style.display = 'block';
-            } finally {
-                analyzeBtn.disabled = false;
-                loading.style.display = 'none';
             }
+
+            // Initial LLM status check
+            checkLocalLLMStatus().then(isOnline => {
+                if (!isOnline) {
+                    llmToggle.checked = false;
+                    llmToggle.disabled = true;
+                }
+            });
+
+            // Periodic LLM status check
+            setInterval(checkLocalLLMStatus, 30000);
+
+            // LLM toggle change handler
+            llmToggle.addEventListener('change', async function(e) {
+                if (e.target.checked) {
+                    const isOnline = await checkLocalLLMStatus();
+                    if (!isOnline) {
+                        e.target.checked = false;
+                        alert('Local LLM is not available. Please ensure Ollama is running.');
+                    }
+                }
+            });
+
+            // Form submission handler
+            uploadForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                if (!fileInput.files[0]) {
+                    alert('Please select a file first');
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('file', fileInput.files[0]);
+                formData.append('use_local_llm', llmToggle.checked);
+
+                analyzeBtn.disabled = true;
+                loading.style.display = 'flex';
+                result.style.display = 'none';
+
+                try {
+                    const response = await fetch('/analyze', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const data = await response.json();
+                    
+                    if (!response.ok) {
+                        throw new Error(data.error || 'Error analyzing file');
+                    }
+                    
+                    const formattedAnalysis = data.analysis
+                        .replace(/^#{2,3}\s+(.+)$/gm, '<h2>$1</h2>')
+                        .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+                        .replace(/^\d+\.\s+([^\n]+)/gm, '<h3>$1</h3>')
+                        .replace(/^[-•]\s+(.+)/gm, '<li>$1</li>')
+                        .replace(/(?:\n|^)([A-Z][^:\n]+:)/g, '<strong>$1</strong>')
+                        .replace(/((?:<li>.*?<\/li>\n?)+)/g, '<ul>$1</ul>')
+                        .replace(/\n{2,}/g, '</p><p>')
+                        .replace(/\n/g, '<br>');
+                    
+                    result.innerHTML = `<p>${formattedAnalysis}</p>`;
+                    result.style.display = 'block';
+                    result.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                } catch (error) {
+                    console.error('Error:', error);
+                    result.innerHTML = `<div class="error-message">${error.message || 'Error analyzing file. Please try again.'}</div>`;
+                    result.style.display = 'block';
+                } finally {
+                    analyzeBtn.disabled = false;
+                    loading.style.display = 'none';
+                }
+            });
         });
-
-        // Theme toggle functionality
-        const themeToggle = document.getElementById('themeToggle');
-        const themeIcon = themeToggle.querySelector('i');
-        
-        // Check for saved theme preference or default to 'light'
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        document.documentElement.setAttribute('data-theme', savedTheme);
-        updateThemeIcon(savedTheme);
-
-        themeToggle.addEventListener('click', () => {
-            const currentTheme = document.documentElement.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            
-            document.documentElement.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-            updateThemeIcon(newTheme);
-        });
-
-        function updateThemeIcon(theme) {
-            themeIcon.className = theme === 'dark' ? 'bi bi-moon-fill' : 'bi bi-sun-fill';
-        }
     </script>
 </body>
 </html>
