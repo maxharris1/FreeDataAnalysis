@@ -70,9 +70,8 @@
 
         .header p {
             color: var(--accent-color);
-            font-size: 1.2rem;
+            font-size: 1rem;
             margin: 0;
-            font-weight: 500;
         }
 
         .upload-section {
@@ -147,6 +146,10 @@
             line-height: 1.5;
         }
 
+        #uploadForm {
+            text-align: center;
+        }
+
         .analyze-btn {
             background-color: var(--accent-color);
             color: white;
@@ -203,119 +206,74 @@
             border-radius: 12px;
             border: 1px solid var(--border-color);
             margin-top: 2rem;
-            font-size: 1rem;
-            line-height: 1.7;
+            font-size: 1.1rem;
+            line-height: 1.8;
             color: var(--text-primary);
         }
 
-        .section-title {
-            font-size: 1.25rem;
+        /* Main section headers (1., 2., etc.) */
+        .result-box h2 {
+            color: var(--text-primary);
+            font-size: clamp(1.8rem, 3.5vw, 2.2rem);
+            margin: 2rem 0 1.5rem 0;
             font-weight: 600;
-            color: var(--accent-color);
-            margin: 1.5rem 0 1rem;
-            display: flex;
-            align-items: center;
-            cursor: pointer;
-            user-select: none;
-        }
-
-        .section-title i {
-            margin-right: 0.5rem;
-            transition: transform 0.3s ease;
-        }
-
-        .section-title.collapsed i {
-            transform: rotate(-90deg);
-        }
-
-        .section-content {
-            background-color: var(--bg-secondary);
-            padding: 1.5rem;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            margin-bottom: 1rem;
-            transition: all 0.3s ease;
-        }
-
-        .section-content.collapsed {
-            display: none;
-        }
-
-        .key-stat {
-            display: inline-block;
-            background-color: var(--upload-bg);
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            margin: 0.25rem;
-            font-size: 0.9rem;
-        }
-
-        .stat-label {
-            color: var(--text-secondary);
-            font-size: 0.85rem;
-            margin-bottom: 0.25rem;
-        }
-
-        .stat-value {
-            color: var(--accent-color);
-            font-weight: 600;
-        }
-
-        .recommendation {
-            background-color: var(--upload-bg);
-            padding: 1rem;
-            border-radius: 8px;
-            margin: 0.5rem 0;
-            border-left: 4px solid var(--accent-color);
-        }
-
-        pre {
-            background-color: var(--upload-bg);
-            padding: 1rem;
-            border-radius: 6px;
-            overflow-x: auto;
-            font-size: 0.9rem;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 1rem 0;
-        }
-
-        th, td {
-            padding: 0.75rem;
-            border: 1px solid var(--border-color);
+            padding-bottom: 0.5rem;
             text-align: left;
+            width: 100%;
         }
 
-        th {
-            background-color: var(--upload-bg);
-            font-weight: 600;
+        /* Sub headers */
+        .result-box h3, 
+        .result-box strong {
+            color: var(--text-primary);
+            font-size: clamp(1.3rem, 3vw, 1.6rem);
+            margin: 1.5rem 0 1rem 2rem;
+            font-weight: 500;
+            text-align: left;
+            display: block;
+            position: relative;
         }
 
-        .visualization-suggestion {
-            background-color: var(--upload-bg);
-            padding: 1rem;
-            border-radius: 8px;
+        /* Add bullet for sub headers */
+        .result-box h3::before,
+        .result-box strong::before {
+            content: "•";
+            position: absolute;
+            left: -1.5rem;
+        }
+
+        /* Content text */
+        .result-box p,
+        .result-box ul,
+        .result-box ol {
+            margin: 0.5rem 0 0.5rem 0;
+            padding-left: 4rem;
+        }
+
+        /* List items */
+        .result-box li {
             margin: 0.5rem 0;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
+            padding-left: 0;
+            display: block;
         }
 
-        .visualization-suggestion i {
-            font-size: 1.5rem;
-            color: var(--accent-color);
-        }
+        /* Mobile adjustments */
+        @media (max-width: 768px) {
+            .result-box h2 {
+                font-size: clamp(1.5rem, 3vw, 1.8rem);
+            }
 
-        .error-message {
-            color: var(--error-text);
-            background-color: var(--error-bg);
-            border-color: var(--error-border);
-            margin-top: 1rem;
-            padding: 1rem;
-            border-radius: 5px;
+            .result-box h3,
+            .result-box strong {
+                font-size: clamp(1.2rem, 2.5vw, 1.4rem);
+                margin-left: 1.5rem;
+            }
+
+            .result-box p,
+            .result-box ul,
+            .result-box ol {
+                padding-left: 2.5rem;
+            }
         }
 
         .theme-toggle {
@@ -353,47 +311,52 @@
     <div class="main-container">
         <div class="header">
             <h1><i class="bi bi-graph-up"></i> Free Data Analysis</h1>
-            <p>Upload your data file for instant AI-powered analysis</p>
+            <p>Upload your file for instant analysis</p>
         </div>
-        
-        <form id="uploadForm" enctype="multipart/form-data">
-            <div class="upload-section" id="dropZone">
-                <div class="file-input-wrapper">
-                    <div class="file-input-button">
-                        <i class="bi bi-cloud-upload"></i> Choose File or Drag & Drop
-                    </div>
-                    <input type="file" class="form-control" id="file" name="file" accept=".csv,.txt" required>
-                </div>
-                <div id="selectedFile" class="selected-file">No file selected</div>
-                <div class="file-info">
-                    Supported file types: CSV (comma-separated values) and TXT files
-                    <br>
-                    Maximum file size: 16MB
-                </div>
-            </div>
-            
-            <div class="text-center">
-                <button type="submit" class="analyze-btn" id="analyzeBtn">
-                    <i class="bi bi-magic"></i> Analyze Data
+
+        <div class="upload-section" id="dropZone">
+            <div class="file-input-wrapper">
+                <input type="file" id="fileInput" accept=".csv,.txt,.pdf,.xlsx" style="display: none;">
+                <button class="file-input-button">
+                    <i class="bi bi-cloud-upload"></i>
+                    Choose File
                 </button>
             </div>
+            <div class="file-info">
+                Supported formats: CSV, Excel (XLSX), TXT, PDF<br>
+                Maximum file size: 16MB
+            </div>
+            <div class="selected-file" id="selectedFile"></div>
+        </div>
+
+        <form id="uploadForm">
+            <button type="submit" class="analyze-btn" id="analyzeBtn">
+                <i class="bi bi-magic"></i>
+                Analyze
+            </button>
         </form>
 
         <div id="loading" class="loading-spinner" style="display: none;">
-            <div class="spinner-border text-primary" role="status">
+            <div class="spinner-border" role="status">
                 <span class="visually-hidden">Loading...</span>
             </div>
-            <span class="ms-2">Analyzing your data...</span>
+            <span>Analyzing your file...</span>
         </div>
 
         <div id="result" class="result-box" style="display: none;"></div>
     </div>
 
     <script>
-        // Drag and drop functionality
+        // Get DOM elements
         const dropZone = document.getElementById('dropZone');
-        const fileInput = document.getElementById('file');
+        const fileInput = document.getElementById('fileInput');
+        const selectedFile = document.getElementById('selectedFile');
+        const uploadForm = document.getElementById('uploadForm');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const loading = document.getElementById('loading');
+        const result = document.getElementById('result');
 
+        // Drag and drop functionality
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
             dropZone.addEventListener(eventName, preventDefaults, false);
         });
@@ -425,27 +388,37 @@
             const dt = e.dataTransfer;
             const files = dt.files;
             fileInput.files = files;
-            
-            // Trigger the change event
-            const event = new Event('change');
-            fileInput.dispatchEvent(event);
+            updateFileName(files[0]);
         }
 
-        // Update selected filename
-        document.getElementById('file').addEventListener('change', function(e) {
-            const fileName = e.target.files[0]?.name || 'No file selected';
-            document.getElementById('selectedFile').textContent = fileName;
+        // Handle file selection via button
+        dropZone.addEventListener('click', () => {
+            fileInput.click();
         });
 
-        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+        fileInput.addEventListener('change', (e) => {
+            updateFileName(e.target.files[0]);
+        });
+
+        function updateFileName(file) {
+            selectedFile.textContent = file ? file.name : 'No file selected';
+        }
+
+        // Form submission
+        uploadForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+            
+            if (!fileInput.files[0]) {
+                alert('Please select a file first');
+                return;
+            }
+
             const formData = new FormData();
-            const fileInput = document.getElementById('file');
             formData.append('file', fileInput.files[0]);
 
-            document.getElementById('analyzeBtn').disabled = true;
-            document.getElementById('loading').style.display = 'flex';
-            document.getElementById('result').style.display = 'none';
+            analyzeBtn.disabled = true;
+            loading.style.display = 'flex';
+            result.style.display = 'none';
 
             try {
                 const response = await fetch('/analyze', {
@@ -458,144 +431,30 @@
                     throw new Error(data.error || 'Error analyzing file');
                 }
                 
-                const resultElement = document.getElementById('result');
-                // Parse the analysis text and create structured HTML
-                const analysisHtml = formatAnalysisResult(data.analysis);
-                resultElement.innerHTML = analysisHtml;
-                resultElement.style.display = 'block';
+                const formattedAnalysis = data.analysis
+                    .replace(/^#{2,3}\s+(.+)$/gm, '<h2>$1</h2>')
+                    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+                    .replace(/^\d+\.\s+([^\n]+)/gm, '<h3>$1</h3>')
+                    .replace(/^[-•]\s+(.+)/gm, '<li>$1</li>')
+                    .replace(/(?:\n|^)([A-Z][^:\n]+:)/g, '<strong>$1</strong>')
+                    .replace(/((?:<li>.*?<\/li>\n?)+)/g, '<ul>$1</ul>')
+                    .replace(/\n{2,}/g, '</p><p>')
+                    .replace(/\n/g, '<br>');
                 
-                // Add click handlers for collapsible sections
-                document.querySelectorAll('.section-title').forEach(title => {
-                    title.addEventListener('click', () => {
-                        const content = title.nextElementSibling;
-                        const isCollapsed = content.classList.contains('collapsed');
-                        
-                        content.classList.toggle('collapsed');
-                        title.classList.toggle('collapsed');
-                    });
-                });
+                result.innerHTML = `<p>${formattedAnalysis}</p>`;
+                result.style.display = 'block';
                 
                 // Scroll to results
-                resultElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                result.scrollIntoView({ behavior: 'smooth', block: 'start' });
             } catch (error) {
                 console.error('Error:', error);
-                const resultElement = document.getElementById('result');
-                resultElement.innerHTML = `<div class="error-message">${error.message || 'Error analyzing file. Please try again.'}</div>`;
-                resultElement.style.display = 'block';
+                result.innerHTML = `<div class="error-message">${error.message || 'Error analyzing file. Please try again.'}</div>`;
+                result.style.display = 'block';
             } finally {
-                document.getElementById('analyzeBtn').disabled = false;
-                document.getElementById('loading').style.display = 'none';
+                analyzeBtn.disabled = false;
+                loading.style.display = 'none';
             }
         });
-
-        function formatAnalysisResult(analysis) {
-            // Split the analysis into sections based on numbered headings
-            const sections = analysis.split(/(?=\d+\.)/);
-            
-            let html = '<div class="analysis-container">';
-            
-            sections.forEach(section => {
-                if (!section.trim()) return;
-                
-                const titleMatch = section.match(/^\d+\.\s+([^\n]+)/);
-                if (titleMatch) {
-                    const title = titleMatch[1];
-                    const content = section.substring(titleMatch[0].length).trim();
-                    
-                    html += `
-                        <div class="section-title">
-                            <i class="bi bi-chevron-down"></i>
-                            ${title}
-                        </div>
-                        <div class="section-content">
-                            ${formatSectionContent(title, content)}
-                        </div>
-                    `;
-                }
-            });
-            
-            html += '</div>';
-            return html;
-        }
-
-        function formatSectionContent(title, content) {
-            // Format content based on section type
-            if (title.includes('Executive Summary')) {
-                return formatParagraphs(content);
-            } else if (title.includes('Statistical Overview')) {
-                return formatStatistics(content);
-            } else if (title.includes('Key Relationships')) {
-                return formatRelationships(content);
-            } else if (title.includes('Recommended Visualizations')) {
-                return formatVisualizations(content);
-            } else if (title.includes('Action Items')) {
-                return formatActionItems(content);
-            }
-            return formatParagraphs(content);
-        }
-
-        function formatParagraphs(content) {
-            return content.split('\n').map(p => p.trim()).filter(p => p).map(p => `<p>${p}</p>`).join('');
-        }
-
-        function formatStatistics(content) {
-            const parts = content.split(/[A-Z]\./);
-            return parts.map(part => {
-                if (!part.trim()) return '';
-                const lines = part.trim().split('\n');
-                const subTitle = lines[0];
-                const stats = lines.slice(1).join('\n');
-                
-                return `
-                    <div class="stat-section">
-                        <h4>${subTitle}</h4>
-                        <div class="stat-content">
-                            ${formatStatItems(stats)}
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function formatStatItems(stats) {
-            return stats.split('-').map(stat => {
-                if (!stat.trim()) return '';
-                const [label, value] = stat.split(':').map(s => s.trim());
-                if (!value) return `<div class="stat-label">${label}</div>`;
-                return `
-                    <div class="key-stat">
-                        <div class="stat-label">${label}</div>
-                        <div class="stat-value">${value}</div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function formatRelationships(content) {
-            return content.split('-').map(item => {
-                if (!item.trim()) return '';
-                return `<div class="relationship-item">${item.trim()}</div>`;
-            }).join('');
-        }
-
-        function formatVisualizations(content) {
-            return content.split(/\d+\./).map(viz => {
-                if (!viz.trim()) return '';
-                return `
-                    <div class="visualization-suggestion">
-                        <i class="bi bi-graph-up"></i>
-                        <div>${viz.trim()}</div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function formatActionItems(content) {
-            return content.split('-').map(item => {
-                if (!item.trim()) return '';
-                return `<div class="recommendation">${item.trim()}</div>`;
-            }).join('');
-        }
 
         // Theme toggle functionality
         const themeToggle = document.getElementById('themeToggle');
@@ -620,4 +479,4 @@
         }
     </script>
 </body>
-</html> 
+</html>
